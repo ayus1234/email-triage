@@ -11,12 +11,9 @@ import httpx
 from client import MyEnv
 from models import EmailAction, ActionType
 
-API_BASE_URL = os.environ.get("API_BASE_URL", "https://api.openai.com/v1")
-MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4o-mini")
-API_KEY = os.environ.get("API_KEY", os.environ.get("OPENAI_API_KEY", "dummy_key"))
-
 # Use environment variable for server URL if available, fallback to localhost:7860
 ENV_URL = os.environ.get("ENV_URL", "http://localhost:7860")
+MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4o-mini")
 
 BENCHMARK = "email_triage"
 
@@ -158,7 +155,14 @@ async def main():
         print(f"Error during wait_for_server: {e}", flush=True)
 
     try:
-        client = AsyncOpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+        api_base_url = os.environ.get("API_BASE_URL")
+        api_key = os.environ.get("API_KEY")
+        
+        # Explicitly configure using environment variables for the LLM proxy check
+        client = AsyncOpenAI(
+            base_url=api_base_url if api_base_url else os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+            api_key=api_key if api_key else os.environ.get("OPENAI_API_KEY", "dummy_key")
+        )
         
         # We test all 3 tasks sequentially
         for task in ["easy", "medium", "hard"]:
