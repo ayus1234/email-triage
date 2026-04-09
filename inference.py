@@ -130,7 +130,16 @@ async def run_task(task_name: str, client: AsyncOpenAI, url: str, model_name: st
             if done:
                 score = reward
                 break
-                
+        if not done:
+            try:
+                result = await env.step(EmailAction(action_type=ActionType.SUBMIT))
+                reward = result.reward if result.reward is not None else 0.01
+                reward = max(0.001, min(reward, 0.999))
+                score = reward
+                done = True
+            except Exception as e:
+                print("[FORCED SUBMIT ERROR]", e, flush=True)
+
         score = max(0.001, min(score, 0.999))
         success = score >= 0.99
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
