@@ -142,10 +142,16 @@ async def run_task(task_name: str, client: AsyncOpenAI, url: str, model_name: st
 
         score = max(0.001, min(score, 0.999))
         success = score >= 0.99
+        steps_taken = max(1, steps_taken)
+        if len(rewards) == 0:
+            rewards.append(score)
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
         
     except Exception as e:
         print(f"CRITICAL ERROR in run_task: {e}", flush=True)
+        steps_taken = max(1, steps_taken)
+        if len(rewards) == 0:
+            rewards.append(0.01)
         log_end(success=False, steps=steps_taken, score=0.01, rewards=rewards)
     finally:
         try:
