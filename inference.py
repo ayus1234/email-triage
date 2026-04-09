@@ -13,7 +13,6 @@ from models import EmailAction, ActionType
 
 # Use environment variable for server URL if available, fallback to localhost:7860
 ENV_URL = os.environ.get("ENV_URL", "http://localhost:7860")
-MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4o-mini")
 
 BENCHMARK = "email_triage"
 
@@ -69,8 +68,8 @@ async def wait_for_server(url: str, timeout: int = 30):
             await asyncio.sleep(1.0)
     return False
 
-async def run_task(task_name: str, client: AsyncOpenAI, url: str):
-    log_start(task=task_name, env=BENCHMARK, model=MODEL_NAME)
+async def run_task(task_name: str, client: AsyncOpenAI, url: str, model_name: str):
+    log_start(task=task_name, env=BENCHMARK, model=model_name)
     
     env = MyEnv(url)
     history = []
@@ -103,7 +102,7 @@ async def run_task(task_name: str, client: AsyncOpenAI, url: str):
             
             try:
                 response = await client.chat.completions.create(
-                    model=MODEL_NAME,
+                    model=model_name,
                     messages=history,
                     temperature=0.0
                 )
@@ -144,8 +143,6 @@ async def run_task(task_name: str, client: AsyncOpenAI, url: str):
             pass
 
 async def main():
-    print(f"Starting inference with ENV_URL={ENV_URL}, MODEL_NAME={MODEL_NAME}", flush=True)
-    
     url = ENV_URL
     try:
         if not await wait_for_server(url):
@@ -155,19 +152,31 @@ async def main():
         print(f"Error during wait_for_server: {e}", flush=True)
 
     try:
-        api_base_url = os.environ.get("API_BASE_URL")
-        api_key = os.environ.get("API_KEY")
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass
+
+        # Fallbacks for local testing but populating directly into os.environ
+        if "API_BASE_URL" not in os.environ:
+            os.environ["API_BASE_URL"] = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
+        if "API_KEY" not in os.environ:
+            os.environ["API_KEY"] = os.environ.get("OPENAI_API_KEY", "dummy_key")
         
-        # Explicitly configure using environment variables for the LLM proxy check
+        # Explicitly configure exactly as demanded by the hackathon platform's instructions
         client = AsyncOpenAI(
-            base_url=api_base_url if api_base_url else os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-            api_key=api_key if api_key else os.environ.get("OPENAI_API_KEY", "dummy_key")
+            base_url=os.environ["API_BASE_URL"],
+            api_key=os.environ["API_KEY"]
         )
         
+        model_name = os.environ.get("MODEL_NAME", "gpt-4o-mini")
+        print(f"Starting inference with ENV_URL={url}, MODEL_NAME={model_name}", flush=True)
+
         # We test all 3 tasks sequentially
         for task in ["easy", "medium", "hard"]:
             try:
-                await run_task(task, client, url)
+                await run_task(task, client, url, model_name)
             except Exception as task_error:
                 print(f"Error running task {task}: {task_error}", flush=True)
     except Exception as e:
