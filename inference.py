@@ -129,28 +129,28 @@ async def run_task(task_name: str, client: AsyncOpenAI, url: str, model_name: st
             log_step(step=step_idx, action=action_str, reward=reward, done=done, error=None)
             
             if done:
-                score = reward
                 break
-        if not done:
+        
+        # Always force a SUBMIT to guarantee an authentic graded score from the environment
+        try:
+            result = await env.step(EmailAction(action_type=ActionType.SUBMIT))
+            reward = result.reward if result.reward is not None else 0.01
+            reward = max(0.001, min(reward, 0.999))
+            score = reward
+            rewards.append(reward)
+            done = True
+        except Exception as e:
+            print("[FORCED SUBMIT ERROR]", e, flush=True)
+            # RETRY once more (important)
             try:
                 result = await env.step(EmailAction(action_type=ActionType.SUBMIT))
                 reward = result.reward if result.reward is not None else 0.01
                 reward = max(0.001, min(reward, 0.999))
                 score = reward
-                rewards.append(reward)
+                rewards.append(score)
                 done = True
-            except Exception as e:
-                print("[FORCED SUBMIT ERROR]", e, flush=True)
-                # RETRY once more (important)
-                try:
-                    result = await env.step(EmailAction(action_type=ActionType.SUBMIT))
-                    reward = result.reward if result.reward is not None else 0.01
-                    reward = max(0.001, min(reward, 0.999))
-                    score = reward
-                    rewards.append(score)
-                    done = True
-                except Exception as e2:
-                    print("[FORCED SUBMIT RETRY FAILED]", e2, flush=True)
+            except Exception as e2:
+                print("[FORCED SUBMIT RETRY FAILED]", e2, flush=True)
 
         score = max(0.001, min(score, 0.999))
         success = score >= 0.99
