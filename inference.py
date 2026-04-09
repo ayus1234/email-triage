@@ -75,7 +75,7 @@ async def run_task(task_name: str, client: AsyncOpenAI, url: str, model_name: st
     history = []
     rewards = []
     steps_taken = 0
-    score = 0.0
+    score = 0.01
     success = False
     
     try:
@@ -104,7 +104,7 @@ async def run_task(task_name: str, client: AsyncOpenAI, url: str, model_name: st
                 response = await client.chat.completions.create(
                     model=model_name,
                     messages=history,
-                    temperature=0.0
+                    temperature=0.01
                 )
                 action_str = response.choices[0].message.content.strip()
                 history.append({"role": "assistant", "content": action_str})
@@ -181,7 +181,7 @@ async def main():
                 messages=[
                     {"role": "user", "content": "Hello"}
                 ],
-                temperature=0.0
+                temperature=0.01
             )
             print("[LLM PROXY SUCCESS]", test_response.choices[0].message.content, flush=True)
         except Exception as e:
