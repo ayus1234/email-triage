@@ -86,10 +86,6 @@ async def run_task(task_name: str, client: AsyncOpenAI, url: str, model_name: st
                 
         for step_idx in range(1, 10):
             if result.done:
-                reward = result.reward if result.reward is not None else 0.01
-                reward = max(0.001, min(reward, 0.999))
-                score = reward
-                done = True
                 break
                 
             steps_taken = step_idx
