@@ -136,6 +136,7 @@ async def run_task(task_name: str, client: AsyncOpenAI, url: str, model_name: st
                 reward = result.reward if result.reward is not None else 0.01
                 reward = max(0.001, min(reward, 0.999))
                 score = reward
+                rewards.append(reward)
                 done = True
             except Exception as e:
                 print("[FORCED SUBMIT ERROR]", e, flush=True)
