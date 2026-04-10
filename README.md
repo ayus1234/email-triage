@@ -120,6 +120,8 @@ The agent:
 
 ---
 
+🚀 Below is a step-by-step execution of the AI agent:
+
 ### 📖 Step 1: Understanding the Email
 The agent reads and understands the customer’s request.
 
