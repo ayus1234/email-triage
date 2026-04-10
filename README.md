@@ -3,7 +3,7 @@
 
 🏆 Built for the Meta PyTorch Hackathon — focused on real-world AI agent systems
 
-🚀 A real-world simulation where an AI agent acts as an autonomous email assistant — reading, classifying, replying, and routing emails intelligently.
+🚀 An AI-powered email triage agent that reads, classifies, replies, and routes emails autonomously using OpenEnv and LLMs.
 
 🌐 **Live Demo:** [https://huggingface.co/spaces/ayus1234/email-triage](https://huggingface.co/spaces/ayus1234/email-triage)
 
